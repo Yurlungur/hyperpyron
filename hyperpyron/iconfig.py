@@ -9,5 +9,6 @@ APP_NAME="hyperpyron"
 APP_AUTHOR="Yurlungur"
 CACHE_DIR = "cache"
 CONF_DIR = "conf"
-DEBUG = False
+PARSECONF_DIR = "parse"
+DEBUG = True
 
