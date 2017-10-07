@@ -9,6 +9,7 @@ Author: Jonah Miller (jonah.maxwell.miller@gmail.com)
 import yaml
 import os
 import re
+import numpy as np
 import pandas as pd
 from abc import ABC,abstractmethod
 from os import path
@@ -24,9 +25,39 @@ CATEGORIES = set(['Groceries',
                   'Automotive',
                   'Income',
                   'Cash',
-                  'Entertainment'])
+                  'Entertainment',
+                  'Transfer',
+                  'Other'])
 COLUMNS = ['Date','Description','Amount','Category']
 
+categories_file=path.join(conf_dir,"categories.yaml")
+default_categories = {
+    'Automotive': [],
+    'Cash': [],
+    'Entertainment': [],
+    'Groceries': [],
+    'Healthcare': [],
+    'Ignore': [],
+    'Income': [],
+    'Other' : [],
+    'Restaurants': [],
+    'Retail': [],
+    'Transfer': []
+}
+def get_categories():
+    "Load categories file, or try"
+    try:
+        categories = default_categories
+        with open(categories_file,'r') as f:
+            user_categories = yaml.load(f)
+        for k in user_categories.keys():
+            if k not in default_categories.keys():
+                raise ValueError("Unknown category key: \n"
+                                 +str(k))
+            categories[k] += user_categories[k]
+    except OSError:
+        categories = default_categories
+    return categories
 
 def invert_dict(my_map):
     "Invert a dictionary"
@@ -80,6 +111,7 @@ class DataParser(ABC):
     This is the base class for parsing and importing data.
     """
     def __init__(self,data_rules):
+        self.categories = get_categories()
         data_rules = self.validate_rules(data_rules)
         self.file_names = []
         self.rules = data_rules
@@ -95,16 +127,43 @@ class DataParser(ABC):
                 if iconfig.DEBUG:
                     print("Reading in: ",name)
                 frames.append(self.import_one(fpath))
+        if not frames:
+            return None
         frame = pd.concat(frames)
         if 'duplicate checking' in rules.keys():
             if rules['duplicate checking']:
-                frames = self.remove_duplicates(frames)
+                frame = self.remove_duplicates(frame)
         frame = self.standardize_columns(frame)
         frame = self.standardize_categories(frame)
+        frame = self.categorize_missing(frame)
+        frame = self.drop_rows(frame)
         return frame
 
     def get_frame(self):
         return self.frame
+
+    def drop_rows(self,frame):
+        "Ignore a row if the categories file tells us to"
+        out = frame.copy()
+        for c in self.categories['Ignore']:
+            out = out[out.Category != c]
+        return out
+
+    def categorize_missing(self,frame):
+        """The categories file tells us how to
+        categorize some transactions based on
+        their description. We utilize that here.
+        """
+        out = frame.copy()
+        for c in CATEGORIES:
+            for d in self.categories[c]:
+                row_mask = out["Description"].apply(
+                    lambda x: d in x.lower())
+                out.loc[row_mask,"Category"] = c
+        row_mask = out["Category"].apply(
+            lambda x: x not in CATEGORIES)
+        out.loc[row_mask,"Category"] = "Other"
+        return out
 
     @abstractmethod
     def import_one(self,fpath):
@@ -152,14 +211,24 @@ class CSVParser(DataParser):
                 raise ValueError("If you use duplicate checking,"
                                  +" you must include a"
                                  +" hash column.")
+        if 'expenditures positive' not in data_rules.keys():
+            data_rules['expenditures positive'] = False
+        if type(data_rules['expenditures positive']) is not bool:
+                raise TypeError("'expenditures positive'"
+                                " must be a Boolean.")
         return data_rules
 
     def import_one(self,fpath):
         rules = self.rules
         if rules['use column names']:
             usecols = list(rules['columns'].values())
+            if rules['duplicate checking']:
+                usecols.append(rules['hash column'])
         else:
             usecols = sorted(rules['columns'].values())
+            if rules['duplicate checking']:
+                usecols = sorted(usecols
+                                 + [rules['hash column']])
         df = pd.read_csv(fpath,usecols=usecols)
         return df
 
@@ -172,10 +241,17 @@ class CSVParser(DataParser):
             name_map = dict((frame.columns[k],v)\
                             for k,v in name_map.items())
             out = frame.rename(columns = name_map)
-        return frame
+        if not np.any(out["Amount"].apply(
+                lambda x: type(x) is float)):
+            out["Amount"] = out["Amount"].apply(
+                lambda x: float(x.lstrip("$")))
+        if rules['expenditures positive']:
+            out["Amount"] = out["Amount"].apply(
+                lambda x: x*-1)
+        return out
 
     def standardize_categories(self,frame):
-        out = frame.copy(deep=True)
+        out = frame.copy()
         for k,v in self.rules['categories'].items():
             out.loc[out.Category==k,"Category"]=v
         return out
@@ -188,4 +264,6 @@ class CSVParser(DataParser):
             c = frame.columns[rules['hash column']]
         out = frame.drop_duplicates(subset=c,
                                     keep='first')
+        del out[rules['hash column']]
         return out
+
