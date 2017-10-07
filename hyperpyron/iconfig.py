@@ -11,4 +11,4 @@ CACHE_DIR = "cache"
 CONF_DIR = "conf"
 PARSECONF_DIR = "parse"
 DEBUG = True
-
+FCACHE_NAME = "frame.h5"
