@@ -7,6 +7,7 @@ Author: Jonah Miller (jonah.maxwell.miller@gmail.com)
 
 # python
 import os
+from os import path
 from appdirs import AppDirs
 
 # hyperpyron
@@ -17,13 +18,13 @@ def get_sysdirs():
     if hyperpyron_home:
         if iconfig.DEBUG:
             print("hyerpyron_home = ",hyperpyron_home)
-        cache_dir = hyperpyron_home + "/" + iconfig.CACHE_DIR
-        conf_dir = hyperpyron_home + "/" + iconfig.CONF_DIR
+        cache_dir =path.join(hyperpyron_home,iconfig.CACHE_DIR)
+        conf_dir = path.join(hyperpyron_home,iconfig.CONF_DIR)
     else:
         dirs = AppDirs(iconfig.APP_NAME,iconfig.APP_AUTHOR)
         cache_dir = dirs.user_cache_dir
         conf_dir = dirs.user_data_dir
-    parse_conf_dir = conf_dir + "/" + iconfig.PARSECONF_DIR
+    parse_conf_dir = path.join(conf_dir,iconfig.PARSECONF_DIR)
     if iconfig.DEBUG:
         print("Data and home directories:")
         print("\t",cache_dir)
