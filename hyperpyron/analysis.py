@@ -191,4 +191,48 @@ def plot_net_cashflow(frame,
         plt.show()
     return
 
+def compare_cashflow_to_budget(data,budget,
+                               savepath=None,
+                               show=True):
+    """Compares income and expenditures
+    to budgeted income and expenditures
+    in a bar chart.
+
+    Does not consolidate data into "Other."
+    """
+    # TODO: consolidate data into "Other"
+    # in a meaningful way
+    d_plotable = combine_expenses(data,0)
+    b_plotable = combine_expenses(budget,0)
+    d_labels = d_plotable.index.tolist()
+    b_labels = b_plotable.index.tolist()
+    d_vals = d_plotable.as_matrix().flatten()
+    b_vals = b_plotable.as_matrix().flatten()
+    width = 1.
+    for d,b in zip(d_labels,b_labels):
+        if d != b:
+            raise ValueError("Labels not the same!")
+    ind = 1.1*2*width*np.arange(len(b_labels))
+    plt.bar(ind-0.5*width,d_vals,
+            width=width,
+            color='r',
+            alpha=0.8,
+            label = "actual")
+    plt.bar(ind+0.5*width,b_vals,
+            width=width,
+            color='b',
+            alpha=0.8,
+            label = "budgeted")
+    plt.legend(loc="best")
+    plt.xticks(rotation=90)
+    plt.ylabel('Net Cashflow ($)')
+    plt.xlabel('Category')
+    ax = plt.gca()
+    ax.set_xticks(ind)
+    ax.set_xticklabels(b_labels)
+    if savepath:
+        plt.savefig(savepath)
+    if show:
+        plt.show()
+    return
 
