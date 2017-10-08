@@ -22,6 +22,7 @@ CATEGORIES = set(['Groceries',
                   'Cash',
                   'Entertainment',
                   'Transfer',
+                  'Housing',
                   'Other'])
 COLUMNS = ['Date','Description','Amount','Category']
 
@@ -32,6 +33,7 @@ default_categories = {
     'Entertainment': [],
     'Groceries': [],
     'Healthcare': [],
+    'Housing': [],
     'Ignore': [],
     'Income': [],
     'Other' : [],
