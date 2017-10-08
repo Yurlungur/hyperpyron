@@ -34,16 +34,16 @@ def parse_from_data():
 
 def save_to_cache(frame):
     "Save a data frame to the cache"
-    frame.to_hdf(path.join(cache_dir,
-                           iconfig.FCACHE_NAME),
-                 'df')
+    frame.to_pickle(path.join(cache_dir,
+                              iconfig.FCACHE_NAME),
+                    'infer')
 
 def load_from_cache():
     "Load a data frame from cache"
     target = path.join(cache_dir,
                        iconfig.FCACHE_NAME)
     try:
-        frame = pd.read_hdf(target,'df')
+        frame = pd.read_pickle(target,'infer')
     except FileNotFoundError:
         frame = None
     return frame
