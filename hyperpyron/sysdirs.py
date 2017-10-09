@@ -25,7 +25,7 @@ def get_sysdirs():
         cache_dir = dirs.user_cache_dir
         conf_dir = dirs.user_data_dir
     parse_conf_dir = path.join(conf_dir,iconfig.PARSECONF_DIR)
-    if iconfig.DEBUG:
+    if False:
         print("Data and home directories:")
         print("\t",cache_dir)
         print("\t",conf_dir)

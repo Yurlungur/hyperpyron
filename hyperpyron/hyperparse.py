@@ -36,14 +36,14 @@ def save_to_cache(frame):
     "Save a data frame to the cache"
     frame.to_pickle(path.join(cache_dir,
                               iconfig.FCACHE_NAME),
-                    'infer')
+                    None)
 
 def load_from_cache():
     "Load a data frame from cache"
     target = path.join(cache_dir,
                        iconfig.FCACHE_NAME)
     try:
-        frame = pd.read_pickle(target,'infer')
+        frame = pd.read_pickle(target,None)
     except FileNotFoundError:
         frame = None
     return frame

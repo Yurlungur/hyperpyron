@@ -5,13 +5,16 @@ hyperpyron/vis.py
 Author: Jonah Miller (jonah.maxwell.miller@gmail.com)
 """
 
+# python
 import numpy as np
 import pandas as pd
 from datetime import date,timedelta,datetime
 import matplotlib as mpl
 from matplotlib import pyplot as plt
-
 mpl.rcParams.update({'font.size': 16})
+
+# hyperpyron
+from . import iconfig
 
 def filter_frame_between_dates(frame,before,after):
     """Filters a dataframe and selects for
@@ -26,13 +29,21 @@ def filter_frame_between_dates(frame,before,after):
     mask = (frame.Date >= before) & (frame.Date <= after)
     return frame.loc[mask]
 
+def get_dates_for_n_days_ago_and_now(n):
+    """Given a number n, calculates the date n
+    days ago and now and returns both numbers,
+    in chronological order.
+    """
+    now = date.today()
+    then = now - timedelta(days=n)
+    return then,now
+
 def dataframe_from_n_days_ago_to_now(frame,n):
     """Returns a dataframe filtered to show
     dates between n days ago and now.
     """
-    d = date.today() - timedelta(days=n)
-    return filter_frame_between_dates(frame,
-                                      d,date.today())
+    then,now = get_dates_for_n_days_ago_and_now(n)
+    return filter_frame_between_dates(frame,then,now)
 
 def ignore_income(frame):
     """Returns a dataframe ignoring income in frame"""
@@ -90,6 +101,7 @@ def plot_percent_expenditures(frame,
     Pie chart should automatically align to
     be legible.
     """
+    scale = 0.5
     toplot = calculate_percentages(frame)
     toplot = combine_percentages(toplot,cutoff)
     toplot = toplot.sort_values(ascending=False)
@@ -98,9 +110,9 @@ def plot_percent_expenditures(frame,
     num_categories = len(vals)
     transition_num = 4
     calibration_categories = 9
-    e_calibration = 1.2
+    e_calibration = scale*1.2
     emax_base = e_calibration/calibration_categories
-    emin = 0.075
+    emin = scale*0.075
     if num_categories > transition_num:
         x = np.linspace(0,1,num_categories)
         emax = emax_base * num_categories
@@ -108,16 +120,22 @@ def plot_percent_expenditures(frame,
     else:
         explode = emin*np.ones_like(vals)
     plt.pie(vals,labels=labels,
-            radius = 1.2,
+            radius = scale*1.2,
             shadow=True,
             explode=explode,
             startangle=90,
             pctdistance=0.8,
             autopct='%1.1f%%')
+    plt.tight_layout()
     if savepath:
-        plt.savefig(savepath)
+        plt.savefig(savepath,bbox_inches='tight')
+        if iconfig.DEBUG:
+            print("saved file ",savepath)
     if show:
         plt.show()
+    plt.cla()
+    plt.clf()
+    plt.close()
     return    
 
 def get_category_sums(frame):
@@ -185,10 +203,16 @@ def plot_net_cashflow(frame,
     plt.xticks(rotation=90)
     plt.ylabel('Net Cashflow ($)')
     plt.xlabel('Category')
+    plt.tight_layout()
     if savepath:
-        plt.savefig(savepath)
+        plt.savefig(savepath,bbox_inches='tight')
+        if iconfig.DEBUG:
+            print("saved file ",savepath)
     if show:
         plt.show()
+    plt.cla()
+    plt.clf()
+    plt.close()
     return
 
 def compare_cashflow_to_budget(data,budget,
@@ -230,9 +254,15 @@ def compare_cashflow_to_budget(data,budget,
     ax = plt.gca()
     ax.set_xticks(ind)
     ax.set_xticklabels(b_labels)
+    plt.tight_layout()
     if savepath:
-        plt.savefig(savepath)
+        plt.savefig(savepath,bbox_inches='tight')
+        if iconfig.DEBUG:
+            print("saved file ",savepath)
     if show:
         plt.show()
+    plt.cla()
+    plt.clf()
+    plt.close()
     return
 

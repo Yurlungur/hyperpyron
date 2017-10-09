@@ -2,7 +2,7 @@
 
 """setup.py
 Author: Jonah Miller (jonah.maxwell.miller@gmail.com)
-Time-stamp: <2017-10-08 15:01:46 (jmiller)>
+Time-stamp: <2017-10-08 22:28:45 (jmiller)>
 
 This is the setup.py file for the hyperpyron package
 which is an finance and budgeting tool with transparent,
@@ -40,6 +40,11 @@ setup(
     ],
     keywords = 'finance budgeting money',
     packages = find_packages(),
+    entry_points={
+        'console_scripts': [
+            'hyperpyron = hyperpyron.__main__:main'
+        ]
+    },
     install_requires = ['numpy',
                         'scipy',
                         'matplotlib',
