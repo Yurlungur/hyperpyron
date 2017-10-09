@@ -16,7 +16,7 @@ from .sysdirs import cache_dir,conf_dir,parse_conf_dir
 from .analysis import *
 from .hyperparse import *
 
-def make_sure_path_exists(path):
+def _make_sure_path_exists(path):
     "Make the path, if it doesn't already exist"
     try:
         os.makedirs(path)
@@ -25,7 +25,7 @@ def make_sure_path_exists(path):
             raise
 
 # Check directories and make them if necessary
-make_sure_path_exists(cache_dir)
-make_sure_path_exists(conf_dir)
-make_sure_path_exists(parse_conf_dir)
+_make_sure_path_exists(cache_dir)
+_make_sure_path_exists(conf_dir)
+_make_sure_path_exists(parse_conf_dir)
 
